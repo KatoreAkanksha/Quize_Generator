@@ -153,10 +153,10 @@ class GeminiService:
         
         return True
     
-    def _generate_fallback_questions(self, count: int = 5) -> List[Dict]:
-        """Generate fallback questions when API fails"""
-        self.logger.info("Using fallback questions")
-        fallback_questions = [
+    def _generate_fallback_questions(self, count: int) -> List[Dict]:
+        """Generate fallback questions when API fails. Tries to return the requested count, possibly with duplicates if needed."""
+        self.logger.warning(f"API failed or returned invalid format. Using fallback questions, requested count: {count}")
+        base_fallback_questions = [
             {
                 'question_text': 'What is the primary purpose of a database?',
                 'options': {
@@ -209,9 +209,18 @@ class GeminiService:
             }
         ]
         
-        return fallback_questions[:min(count, len(fallback_questions))]
+        # If more questions are needed than available fallbacks, repeat them.
+        num_fallbacks = len(base_fallback_questions)
+        if count <= num_fallbacks:
+            return base_fallback_questions[:count]
+        else:
+            # Repeat the fallback questions to meet the count
+            full_list = []
+            for i in range(count):
+                full_list.append(base_fallback_questions[i % num_fallbacks])
+            return full_list
 
-    def process_file_and_generate_questions(self, file_path: str, count: int = 5, difficulty: str = 'medium') -> List[Dict]:
+    def process_file_and_generate_questions(self, file_path: str, count: int, difficulty: str = 'medium') -> List[Dict]:
         """Process a file and generate quiz questions"""
         text = self.extract_text_from_file(file_path)
         if not text:

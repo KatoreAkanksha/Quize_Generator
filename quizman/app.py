@@ -54,7 +54,8 @@ def create_app():
 
     @app.route('/')
     def home():
-        return redirect(url_for('auth.login_student'))
+        # Render the new landing page instead of redirecting
+        return render_template('landing_page.html')
 
     @app.context_processor
     def inject_now():
