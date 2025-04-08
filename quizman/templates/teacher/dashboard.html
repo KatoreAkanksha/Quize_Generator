@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}Teacher Dashboard{% endblock %}
+
+{% block content %}
+<div class="py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-2xl font-semibold text-gray-900">Teacher Dashboard</h1>
+        
+        <!-- Quick Actions -->
+        <div class="mt-6 flex space-x-4">
+            <a href="{{ url_for('teacher.upload_file') }}"
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Create Quiz from File
+            </a>
+            <a href="{{ url_for('teacher.create_from_text') }}"
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-500 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                Create Quiz from Text
+            </a>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Total Quizzes</dt>
+                                <dd class="text-lg font-semibold text-gray-900">{{ quizzes|length }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Total Attempts</dt>
+                                <dd class="text-lg font-semibold text-gray-900">
+                                    {% set total_attempts = namespace(value=0) %}
+                                    {% for quiz in quizzes %}
+                                        {% set total_attempts.value = total_attempts.value + quiz.attempts|length %}
+                                    {% endfor %}
+                                    {{ total_attempts.value }}
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Average Score</dt>
+                                <dd class="text-lg font-semibold text-gray-900">
+                                    {% set total_score = namespace(value=0) %}
+                                    {% set total_attempts = namespace(value=0) %}
+                                    {% for quiz in quizzes %}
+                                        {% if quiz.attempts %}
+                                            {% for attempt in quiz.attempts %}
+                                                {% set total_score.value = total_score.value + attempt.score %}
+                                                {% set total_attempts.value = total_attempts.value + 1 %}
+                                            {% endfor %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {{ "%.1f"|format(total_score.value / total_attempts.value if total_attempts.value > 0 else 0) }}%
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quizzes List -->
+        <div class="mt-8">
+            <h2 class="text-lg font-medium text-gray-900">Your Quizzes</h2>
+            <div class="mt-4 bg-white shadow overflow-hidden sm:rounded-md">
+                <ul class="divide-y divide-gray-200">
+                    {% for quiz in quizzes %}
+                    <li>
+                        <div class="px-4 py-4 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-lg font-medium text-indigo-600 truncate">
+                                        {{ quiz.title }}
+                                    </h3>
+                                    <p class="mt-1 text-sm text-gray-500">
+                                        Difficulty: {{ quiz.difficulty }} | Time Limit: {{ quiz.time_limit }} minutes
+                                    </p>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <a href="{{ url_for('teacher.assign_quiz', quiz_id=quiz.quiz_id) }}"
+                                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        Assign Quiz
+                                    </a>
+                                    <a href="{{ url_for('teacher.view_results', quiz_id=quiz.quiz_id) }}"
+                                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                        View Results
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function shareQuiz(quizId) {
+    fetch(`/quiz/${quizId}/share`)
+        .then(response => response.json())
+        .then(data => {
+            navigator.clipboard.writeText(data.share_link);
+            alert('Quiz link copied to clipboard!');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to generate share link');
+        });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,16 @@
+Flask==3.0.0
+Flask-Login==0.6.3
+Flask-SQLAlchemy==3.1.1
+Flask-WTF==1.2.1
+WTForms==3.1.1
+mysqlclient==2.2.1
+Python-dotenv==1.0.0
+Werkzeug==3.0.1
+python-magic==0.4.27
+PyPDF2==3.0.1
+python-docx==1.0.1
+Pillow==10.1.0
+tailwindcss==0.0.1
+flask-cors==4.0.0
+requests==2.31.0
+pytesseract==0.3.10

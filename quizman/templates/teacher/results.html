@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Quiz Results - {{ quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-semibold text-gray-900">Results for: {{ quiz.title }}</h1>
+            <a href="{{ url_for('teacher.dashboard') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                &larr; Back to Dashboard
+            </a>
+        </div>
+
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+            <ul class="divide-y divide-gray-200">
+                {% if attempts %}
+                    {% for attempt in attempts %}
+                    <li class="px-4 py-4 sm:px-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-medium text-indigo-600 truncate">{{ attempt.student.name }} ({{ attempt.student.email }})</p>
+                                <p class="mt-1 text-sm text-gray-500">
+                                    Score: <span class="font-semibold">{{ "%.1f"|format(attempt.score) }}%</span>
+                                </p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm text-gray-500">Completed: {{ attempt.completed_at.strftime('%Y-%m-%d %H:%M') if attempt.completed_at else 'N/A' }}</p>
+                                <!-- Optional: Add link to view detailed answers -->
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                {% else %}
+                    <li class="px-4 py-4 sm:px-6">
+                        <p class="text-center text-gray-500">No attempts submitted for this quiz yet.</p>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %} 

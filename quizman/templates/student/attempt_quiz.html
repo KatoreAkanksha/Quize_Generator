@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Attempt Quiz{% endblock %}
+
+{% block content %}
+<div class="py-6">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+                <div>
+                    <h2 class="text-lg leading-6 font-medium text-gray-900">{{ quiz.title }}</h2>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                        Time Remaining: <span id="timer" class="font-medium">{{ quiz.time_limit }}:00</span>
+                    </p>
+                </div>
+                <span class="px-2 py-1 text-xs font-medium rounded-full
+                    {% if quiz.difficulty == 'easy' %}bg-green-100 text-green-800
+                    {% elif quiz.difficulty == 'medium' %}bg-yellow-100 text-yellow-800
+                    {% else %}bg-red-100 text-red-800{% endif %}">
+                    {{ quiz.difficulty|title }}
+                </span>
+            </div>
+
+            <form id="quiz-form" method="POST" action="{{ url_for('student.attempt_quiz', quiz_id=quiz.quiz_id) }}">
+                <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+                    <div class="space-y-8">
+                        {% for question in questions %}
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                                Question {{ loop.index }}
+                            </h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-600">{{ question.question_text }}</p>
+                            </div>
+                            <div class="mt-4 space-y-4">
+                                {% for option in ['a', 'b', 'c', 'd'] %}
+                                <div class="flex items-center">
+                                    <input id="q{{ question.question_id }}_{{ option }}" name="question_{{ question.question_id }}" type="radio" value="{{ option }}" required
+                                        class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                                    <label for="q{{ question.question_id }}_{{ option }}" class="ml-3 block text-sm font-medium text-gray-700">
+                                        {{ question['option_' + option] }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+                    <button type="submit"
+                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Submit Quiz
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const quizDurationMinutes = Number("{{ quiz.time_limit }}");
+const quizEndTime = new Date(Date.now() + quizDurationMinutes * 60 * 1000);
+const timerDisplay = document.getElementById('timer');
+const quizForm = document.getElementById('quiz-form');
+let timerInterval;
+
+function updateTimer() {
+    const now = new Date();
+    const timeLeftMs = quizEndTime - now;
+
+    if (timeLeftMs <= 0) {
+        timerDisplay.textContent = '0:00';
+        clearInterval(timerInterval);
+        // Optionally disable form elements before submitting
+        Array.from(quizForm.elements).forEach(el => el.disabled = true);
+        alert('Time is up! Submitting your answers.');
+        quizForm.submit();
+        return;
+    }
+
+    const totalSeconds = Math.floor(timeLeftMs / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// Update timer immediately and then every second
+updateTimer(); 
+timerInterval = setInterval(updateTimer, 1000);
+
+// Optional: Warn user before leaving the page during the quiz
+window.addEventListener('beforeunload', function (e) {
+    if (new Date() < quizEndTime) { // Only warn if quiz is still active
+        e.preventDefault();
+        e.returnValue = ''; // Standard for most browsers
+    }
+});
+
+</script>
+{% endblock %}

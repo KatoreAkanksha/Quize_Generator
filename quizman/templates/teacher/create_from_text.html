@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Create Quiz from Text{% endblock %}
+
+{% block content %}
+<div class="py-6">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="md:flex md:items-center md:justify-between">
+            <div class="flex-1 min-w-0">
+                <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+                    Create Quiz from Text
+                </h2>
+            </div>
+            <div class="mt-4 flex md:mt-0 md:ml-4">
+                <a href="{{ url_for('teacher.dashboard') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        <div class="mt-6">
+            <div class="bg-white shadow sm:rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="grid grid-cols-1 gap-6">
+                        <div>
+                            <label for="text_content" class="block text-sm font-medium text-gray-700">Learning Material</label>
+                            <p class="mt-1 text-sm text-gray-500">Paste your learning material here to generate quiz questions.</p>
+                            <div class="mt-1">
+                                <textarea id="text_content" name="text_content" rows="10" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Paste your text content here..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div>
+                                <label for="difficulty" class="block text-sm font-medium text-gray-700">Difficulty Level</label>
+                                <select id="difficulty" name="difficulty" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                    <option value="easy">Easy</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="hard">Hard</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="question_count" class="block text-sm font-medium text-gray-700">Number of Questions</label>
+                                <select id="question_count" name="question_count" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                    <option value="5">5 Questions</option>
+                                    <option value="10">10 Questions</option>
+                                    <option value="15">15 Questions</option>
+                                    <option value="20">20 Questions</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-5">
+                        <button type="button" id="generate-btn" class="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                            Generate Quiz
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('generate-btn').addEventListener('click', function() {
+    // Show loading state
+    this.disabled = true;
+    this.innerHTML = '<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Generating...';
+    
+    // Get form values
+    const textContent = document.getElementById('text_content').value;
+    const difficulty = document.getElementById('difficulty').value;
+    const questionCount = document.getElementById('question_count').value;
+    
+    // Validate text content
+    if (!textContent.trim()) {
+        alert('Please enter some text content');
+        this.disabled = false;
+        this.innerHTML = 'Generate Quiz';
+        return;
+    }
+    
+    // Send API request
+    fetch('{{ url_for("quiz.generate_from_text") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            text_content: textContent,
+            difficulty: difficulty,
+            question_count: parseInt(questionCount)
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = data.redirect_url;
+        } else {
+            alert('Error: ' + data.error);
+            this.disabled = false;
+            this.innerHTML = 'Generate Quiz';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while generating the quiz');
+        this.disabled = false;
+        this.innerHTML = 'Generate Quiz';
+    });
+});
+</script>
+{% endblock %}

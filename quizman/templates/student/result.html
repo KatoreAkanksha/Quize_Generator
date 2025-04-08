@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Quiz Result{% endblock %}
+
+{% block content %}
+<div class="py-6">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="px-4 py-5 sm:px-6">
+                <h2 class="text-lg leading-6 font-medium text-gray-900">Quiz Results</h2>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">{{ quiz.title }}</p>
+            </div>
+
+            <!-- Score Overview -->
+            <div class="border-t border-gray-200">
+                <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Final Score</dt>
+                        <dd class="mt-1 text-2xl font-semibold text-gray-900">{{ "%.1f"|format(attempt.score) }}%</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Time Taken</dt>
+                        <dd class="mt-1 text-sm text-gray-900">
+                            {{ (attempt.completed_at - attempt.started_at).total_seconds()|int // 60 }} minutes
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm font-medium text-gray-500">Difficulty</dt>
+                        <dd class="mt-1">
+                            <span class="px-2 py-1 text-xs font-medium rounded-full
+                                {% if quiz.difficulty == 'easy' %}bg-green-100 text-green-800
+                                {% elif quiz.difficulty == 'medium' %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-red-100 text-red-800{% endif %}">
+                                {{ quiz.difficulty|title }}
+                            </span>
+                        </dd>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Results -->
+            <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Question Review</h3>
+                <div class="space-y-6">
+                    {% for answer in answers %}
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                {% if answer.is_correct %}
+                                <svg class="h-6 w-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                {% else %}
+                                <svg class="h-6 w-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                {% endif %}
+                            </div>
+                            <div class="ml-3 flex-1">
+                                <p class="text-sm font-medium text-gray-900">Question {{ loop.index }}</p>
+                                <p class="mt-1 text-sm text-gray-600">{{ answer.question.question_text }}</p>
+                                
+                                <div class="mt-2 space-y-2">
+                                    <div class="flex items-center {% if answer.question.correct_option == 'a' %}text-green-700{% elif answer.selected_option == 'a' and not answer.is_correct %}text-red-700{% else %}text-gray-700{% endif %}">
+                                        <span class="text-sm">A. {{ answer.question.option_a }}</span>
+                                        {% if answer.question.correct_option == 'a' %}
+                                        <span class="ml-2 text-xs">(Correct Answer)</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex items-center {% if answer.question.correct_option == 'b' %}text-green-700{% elif answer.selected_option == 'b' and not answer.is_correct %}text-red-700{% else %}text-gray-700{% endif %}">
+                                        <span class="text-sm">B. {{ answer.question.option_b }}</span>
+                                        {% if answer.question.correct_option == 'b' %}
+                                        <span class="ml-2 text-xs">(Correct Answer)</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex items-center {% if answer.question.correct_option == 'c' %}text-green-700{% elif answer.selected_option == 'c' and not answer.is_correct %}text-red-700{% else %}text-gray-700{% endif %}">
+                                        <span class="text-sm">C. {{ answer.question.option_c }}</span>
+                                        {% if answer.question.correct_option == 'c' %}
+                                        <span class="ml-2 text-xs">(Correct Answer)</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex items-center {% if answer.question.correct_option == 'd' %}text-green-700{% elif answer.selected_option == 'd' and not answer.is_correct %}text-red-700{% else %}text-gray-700{% endif %}">
+                                        <span class="text-sm">D. {{ answer.question.option_d }}</span>
+                                        {% if answer.question.correct_option == 'd' %}
+                                        <span class="ml-2 text-xs">(Correct Answer)</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="mt-2">
+                                    <p class="text-sm {% if answer.is_correct %}text-green-600{% else %}text-red-600{% endif %}">
+                                        Your answer: {{ answer.selected_option|upper }}
+                                        {% if not answer.is_correct %}
+                                        (Correct answer: {{ answer.question.correct_option|upper }})
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+                <a href="{{ url_for('student.dashboard') }}"
+                    class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard{% endblock %}
+
+{% block content %}
+<div class="py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h1 class="text-2xl font-semibold text-gray-900">Student Dashboard</h1>
+
+        <!-- Performance Overview -->
+        <div class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Quizzes Attempted</dt>
+                                <dd class="text-lg font-semibold text-gray-900">{{ attempted_quiz_ids|length }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Average Score</dt>
+                                <dd class="text-lg font-semibold text-gray-900">
+                                    {% set total_score = namespace(value=0) %}
+                                    {% for quiz_id in attempted_quiz_ids %}
+                                        {% for attempt in current_user.attempts if attempt.quiz_id == quiz_id %}
+                                            {% set total_score.value = total_score.value + attempt.score %}
+                                        {% endfor %}
+                                    {% endfor %}
+                                    {{ "%.1f"|format(total_score.value / attempted_quiz_ids|length if attempted_quiz_ids|length > 0 else 0) }}%
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="p-5">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="ml-5 w-0 flex-1">
+                            <dl>
+                                <dt class="text-sm font-medium text-gray-500 truncate">Available Quizzes</dt>
+                                <dd class="text-lg font-semibold text-gray-900">{{ quizzes|length }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Quizzes -->
+        <div class="mt-8">
+            <h2 class="text-lg leading-6 font-medium text-gray-900">Available Quizzes</h2>
+            <div class="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {% for quiz in quizzes %}
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-5">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-medium text-gray-900">{{ quiz.title }}</h3>
+                            <span class="px-2 py-1 text-xs font-medium rounded-full
+                                {% if quiz.difficulty == 'easy' %}bg-green-100 text-green-800
+                                {% elif quiz.difficulty == 'medium' %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-red-100 text-red-800{% endif %}">
+                                {{ quiz.difficulty|title }}
+                            </span>
+                        </div>
+                        <div class="mt-4">
+                            <p class="text-sm text-gray-500">Time Limit: {{ quiz.time_limit }} minutes</p>
+                            <p class="text-sm text-gray-500">Questions: {{ quiz.questions|length }}</p>
+                            {% if quiz.quiz_id in attempted_quiz_ids %}
+                            <p class="text-sm text-green-600 font-medium">Completed</p>
+                            <a href="{{ url_for('student.view_result', attempt_id=(current_user.attempts|selectattr('quiz_id', 'equalto', quiz.quiz_id)|first).attempt_id) }}"
+                                class="mt-2 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                View Result
+                            </a>
+                            {% else %}
+                            <p class="text-sm text-blue-600 font-medium">Not attempted</p>
+                            <a href="{{ url_for('student.view_quiz', quiz_id=quiz.quiz_id) }}"
+                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                Start Quiz
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="col-span-full">
+                    <p class="text-gray-500 text-center">No quizzes available at the moment.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
